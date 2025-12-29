@@ -9,7 +9,14 @@
 
       {% for task in tasks %}
       <li>{{ task }}</li>
+      {% empty %}
+      <li>No tasks yet!</li>
       {% endfor %}
+
     </ul>
     <a href="{% url 'tasks:add' %}">Add a new task</a>
+    
+    {% if tasks %}
+    | <a href="{% url 'tasks:clear' %}" onclick="return confirm('Are you sure you want to clear all tasks?')">Clear all tasks</a>
+    {% endif %}
 {% endblock %}

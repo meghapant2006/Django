@@ -3,14 +3,16 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
-tasks = []
 
 class NewTaskForm(forms.Form):
- task = forms.CharField(label="New Task")
+    task = forms.CharField(label="New Task")
 
 def index(request):
+    if "tasks" not in request.session:
+        request.session["tasks"] = []
+        
     return render(request, "tasks/index.html", {
-        "tasks": tasks
+        "tasks": request.session["tasks"]
     })
 
 
@@ -18,16 +20,21 @@ def add(request):
     if request.method == "POST":
         form = NewTaskForm(request.POST)
         if form.is_valid():
-           task = form.cleaned_data["task"]
-           tasks.append(task)
-           return HttpResponseRedirect(reverse("tasks:index"))
+            task = form.cleaned_data["task"]
+            if "tasks" not in request.session:
+                request.session["tasks"] = []
+            request.session["tasks"] += [task]
+            request.session.modified = True
+            return HttpResponseRedirect(reverse("tasks:index"))
         else:
-               return render (request, "tasks/add.html", {
-                   "form": form
-               })
-           
-            
+            return render(request, "tasks/add.html", {
+                "form": form
+            })
 
     return render(request, "tasks/add.html", {
         "form": NewTaskForm()
-     })
+    })
+
+def clear(request):
+    request.session["tasks"] = []
+    return HttpResponseRedirect(reverse("tasks:index"))
